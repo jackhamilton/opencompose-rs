@@ -1,10 +1,10 @@
 extern crate proc_macro;
-use crate::macro_name::macro_name_impl;
+use crate::view_builder::view_builder_impl;
 use proc_macro::TokenStream;
 
-mod macro_name;
+mod view_builder;
 
 #[proc_macro]
-pub fn macro_name(input: TokenStream) -> TokenStream {
-    macro_name_impl(input)
+pub fn view_builder(input: TokenStream) -> TokenStream {
+    view_builder_impl(input)
 }
