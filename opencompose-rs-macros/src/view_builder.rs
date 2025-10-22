@@ -1,34 +1,7 @@
-use syn::token;
-use syn::Ident;
-use syn::braced;
+use crate::dsl_node::DSLNode;
 use syn::parse_macro_input;
 use proc_macro::TokenStream;
-use quote::{quote};
-use syn::{
-    parse::{Parse, ParseStream},
-};
-
-struct DSLNode {
-    name: Ident,
-    children: Vec<DSLNode>,
-}
-
-impl Parse for DSLNode {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let name: Ident = input.parse()?;
-        let mut children = Vec::new();
-
-        if input.peek(token::Brace) {
-            let content;
-            braced!(content in input);
-            while !content.is_empty() {
-                children.push(content.parse()?);
-            }
-        }
-
-        Ok(DSLNode { name, children })
-    }
-}
+use quote::{format_ident, quote};
 
 pub fn view_builder_impl(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as DSLNode);
@@ -38,31 +11,43 @@ pub fn view_builder_impl(input: TokenStream) -> TokenStream {
         let ident = syn::Ident::new(&name_str, proc_macro2::Span::call_site());
 
         match name_str.as_str() {
-            // Handle container nodes
             "Row" | "Column" | "Box" => {
-                // Recursively expand children into OpenComposeASTs
-                let inner_nodes = node.children.iter().map(expand);
+                let children = node.children.iter().map(expand);
                 quote! {
-                    crate::ast::OpenComposeAST::Container(Box::new(
-                        crate::ast::ContainerNode::#ident(
-                            crate::ast::OpenComposeAST::ViewListNode(Box::new([
-                                #(#inner_nodes),*
-                            ])))
+                    opencompose_rs::ast::OpenComposeAST::Container(Box::new(
+                        opencompose_rs::ast::ContainerNode::#ident(
+                            opencompose_rs::ast::OpenComposeAST::List(Box::new([
+                                #(#children),*
+                            ]))
+                    )
                     ))
                 }
             }
 
-            // Handle simple view nodes
-            "Image" | "Text" | "Button" => {
+            _ => {
+                let arguments = node.arguments.iter().map(|arg| {
+                    let _key = &arg.key;
+                    let val = &arg.value;
+                    quote! { #val }
+                });
+
+                let modifier_fields = node.modifiers.iter().map(|m| {
+                    let key = &m.key;
+                    let val = &m.args.first().expect("Expected one argument");
+                    quote! { .#key(#val) }
+                });
+                let config_ident = format_ident!("{ident}Config");
                 quote! {
-                    crate::ast::OpenComposeAST::View(crate::ast::ViewNode::#ident)
+                    opencompose_rs::ast::OpenComposeAST::View(
+                        opencompose_rs::ast::ViewNode::#ident(
+                            opencompose_rs::configs::#ident::#config_ident::new(
+                                #(#arguments,)*
+                            )
+                            #(#modifier_fields)*
+                        )
+                    )
                 }
             }
-
-            // Unknown node type → compile error
-            _ => quote! {
-                compile_error!(concat!("Unknown DSL node: ", #name_str))
-            },
         }
     }
 
@@ -72,4 +57,3 @@ pub fn view_builder_impl(input: TokenStream) -> TokenStream {
         #expanded
     })
 }
-
