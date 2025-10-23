@@ -6,8 +6,8 @@ use syn::{
 };
 
 pub struct NamedArg {
-    pub key: Ident,
-    _colon: Token![:],
+    pub key: Option<Ident>,
+    _colon: Option<Token![:]>,
     pub value: Expr
 }
 

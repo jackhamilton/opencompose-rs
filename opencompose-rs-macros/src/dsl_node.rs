@@ -29,17 +29,22 @@ impl Parse for DSLNode {
             arguments = Punctuated::<NamedArg, Token![,]>::parse_terminated(&content)?
                 .into_iter()
                 .collect();
+
+            while input.peek(Token![.]) {
+                modifiers.push(input.parse()?);
+            }
         }
 
-        while input.peek(Token![.]) {
-            modifiers.push(input.parse()?);
-        }
         if input.peek(token::Brace) {
             let content;
             braced!(content in input);
             while !content.is_empty() {
                 children.push(content.parse()?);
             }
+        }
+
+        while input.peek(Token![.]) {
+            modifiers.push(input.parse()?);
         }
 
         Ok(DSLNode {
