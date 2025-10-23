@@ -18,8 +18,8 @@ pub enum ViewNode {
 
 #[derive(Debug)]
 pub enum ContainerNode {
-    Row(crate::ast::OpenComposeAST),
-    Column(crate::ast::OpenComposeAST),
-    Box(crate::ast::OpenComposeAST),
-    Button(crate::ast::OpenComposeAST)
+    Row(ViewConfig, crate::ast::OpenComposeAST),
+    Column(ViewConfig, crate::ast::OpenComposeAST),
+    Box(ViewConfig, crate::ast::OpenComposeAST),
+    Button(ViewConfig, crate::ast::OpenComposeAST)
 }
