@@ -21,8 +21,7 @@ pub fn view_builder_impl(input: TokenStream) -> TokenStream {
         // let modifiers: Vec<String> = node.modifiers.iter().map(|a| a.key.to_string()).collect();
         // println!("All modifier keys: {:?}", modifiers);
         let view_modifier_fields = node.modifiers.iter().filter(|m| {
-            let contains = view_config_idents.contains(&m.key.to_string());
-            contains
+            view_config_idents.contains(&m.key.to_string())
         }).map(|m| {
             let key = &m.key;
             // println!("View modifier registered: {:?}", key);
