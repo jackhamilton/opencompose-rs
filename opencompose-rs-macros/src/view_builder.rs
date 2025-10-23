@@ -65,7 +65,7 @@ pub fn view_builder_impl(input: TokenStream) -> TokenStream {
                 let config_ident = format_ident!("{ident}Config");
                 quote! {
                     opencompose_rs::ast::OpenComposeAST::View(
-                        ViewConfig::new()
+                        ViewConfig::new(),
                         opencompose_rs::ast::ViewNode::#ident(
                             ViewConfig::new()
                             #(#view_modifier_fields)*,
