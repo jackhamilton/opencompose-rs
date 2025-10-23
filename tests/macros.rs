@@ -7,6 +7,7 @@ fn it_works() {
         Column {
             Text(text: "Text")
                 .font_size(12)
+                .frame(width: 100, height: 100)
         }
         .frame(width: 100, height: 100)
     };
