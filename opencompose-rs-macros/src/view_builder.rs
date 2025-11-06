@@ -36,7 +36,8 @@ pub fn view_builder_impl(input: TokenStream) -> TokenStream {
                 quote! {
                     opencompose_rs::ast::OpenComposeAST::Container(
                         ViewConfig::new()
-                        #(#view_modifier_fields)*,
+                        #(#view_modifier_fields)*
+                        .done(),
                         Box::new(
                             opencompose_rs::ast::ContainerNode::#ident(
                                 ViewConfig::new(),
@@ -68,11 +69,13 @@ pub fn view_builder_impl(input: TokenStream) -> TokenStream {
                         ViewConfig::new(),
                         opencompose_rs::ast::ViewNode::#ident(
                             ViewConfig::new()
-                            #(#view_modifier_fields)*,
+                            #(#view_modifier_fields)*
+                            .done(),
                             opencompose_rs::configs::#ident::#config_ident::new(
                                 #(#arguments,)*
                             )
                             #(#modifier_fields)*
+                            .done()
                         )
                     )
                 }

@@ -8,4 +8,8 @@ impl ImageConfig {
             url
         }
     }
+
+    pub fn done(&mut self) -> Self {
+        self.clone()
+    }
 }

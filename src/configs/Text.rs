@@ -11,8 +11,12 @@ impl TextConfig {
         }
     }
 
-    pub fn font_size(&mut self, size: usize) -> Self {
+    pub fn font_size(&mut self, size: usize) -> &mut Self {
         self.font_size = size;
+        self
+    }
+
+    pub fn done(&self) -> Self {
         self.clone()
     }
 }
