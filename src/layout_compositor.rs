@@ -21,7 +21,7 @@ impl Compositor {
                 let reconciled_frame = Compositor::reconcile_frames(view_config.frame, view_frame, MergeStyle::Smallest, MergeStyle::Smallest);
                 return reconciled_frame
             },
-            OpenComposeAST::List(_view_config, child_asts) => {
+            OpenComposeAST::List(list_config, child_asts) => {
                 // test print: println!("Parsing list");
                 let mut combined_frame = ViewFrame {
                     width: ViewSize::Infinite,
@@ -29,38 +29,63 @@ impl Compositor {
                 };
                 let child_ast_iter = child_asts.iter_mut();
                 for child_ast in child_ast_iter {
-                    let frame = Compositor::layout_ast_recurse(child_ast, MergeStyle::Parent, MergeStyle::Parent);
+                    let frame = Compositor::layout_ast_recurse(child_ast, MergeStyle::ParentUnlessInfinite, MergeStyle::ParentUnlessInfinite);
                     combined_frame = Compositor::reconcile_frames(combined_frame, frame, horizontal_merge_style, vertical_merge_style);
                 }
+                // println!("Detected combined frame: {:?}", combined_frame);
                 for mut child_ast in child_asts {
                     let frame = Compositor::layout_ast_recurse(&mut child_ast, MergeStyle::Parent, MergeStyle::Parent);
-                    let updated_frame = Compositor::reconcile_frames(combined_frame, frame, MergeStyle::Parent, MergeStyle::Parent);
+                    let mut updated_frame = Compositor::reconcile_frames(combined_frame, frame, MergeStyle::Smallest, MergeStyle::Smallest);
+                    updated_frame = Compositor::reconcile_frames(list_config.frame, updated_frame, MergeStyle::Smallest, MergeStyle::Smallest);
                     Compositor::modify_ast_frame(child_ast, updated_frame);
                 }
                 combined_frame
             },
             OpenComposeAST::Container(parent_config, container) => {
                 // cloning a reference type, should still refer to the same underlying data
-                let mut container_unw = *(container.clone());
                 // test print: println!("parsing container");
-                match container_unw {
-                    ContainerNode::Row(ref mut view_config, ref mut open_compose_ast) => {
+                match container.as_mut() {
+                    ContainerNode::Row(view_config, open_compose_ast) => {
+                        view_config.frame = parent_config.frame;
+                        match open_compose_ast {
+                            OpenComposeAST::List(list_config, _child_asts) => list_config.frame = view_config.frame,
+                            _ => {}
+                        }
+                        // println!("Entering row recursion. Current AST:");
+                        // dbg!(&open_compose_ast);
                         let frame = Compositor::layout_ast_recurse(open_compose_ast, MergeStyle::Additive, MergeStyle::LargestFinite);
                         // Row should expand ignoring width if children exceed frame, so it can be
                         // stuck in a scrollview
                         // test print: println!("Merging parent {:?} with child {:?}", parent_config.frame, frame);
-                        let merged_parent_frame = Compositor::reconcile_frames(parent_config.frame, frame, MergeStyle::ParentUnlessInfinite, MergeStyle::ParentUnlessInfinite);
+                        let merged_parent_frame = Compositor::reconcile_frames(
+                            parent_config.frame,
+                            frame,
+                            MergeStyle::ParentUnlessInfinite,
+                            MergeStyle::ParentUnlessInfinite
+                        );
                         // test print: println!("Updating parent frame to {:?}", merged_parent_frame);
                         view_config.frame = merged_parent_frame;
                         parent_config.frame = merged_parent_frame;
                         merged_parent_frame
                     },
-                    ContainerNode::Column(ref mut view_config, ref mut open_compose_ast) => {
+                    ContainerNode::Column(view_config, open_compose_ast) => {
+                        view_config.frame = parent_config.frame;
+                        match open_compose_ast {
+                            OpenComposeAST::List(list_config, _child_asts) => list_config.frame = view_config.frame,
+                            _ => {}
+                        }
+                        // println!("Entering column recursion. Current AST:");
+                        // dbg!(&open_compose_ast);
                         let frame = Compositor::layout_ast_recurse(open_compose_ast, MergeStyle::LargestFinite, MergeStyle::Additive);
                         // Column should expand ignoring height if children exceed frame, so it can be
                         // stuck in a scrollview
                         // test print: println!("Merging parent {:?} with child {:?}", parent_config.frame, frame);
-                        let merged_parent_frame = Compositor::reconcile_frames(parent_config.frame, frame, MergeStyle::ParentUnlessInfinite, MergeStyle::ParentUnlessInfinite);
+                        let merged_parent_frame = Compositor::reconcile_frames(
+                            parent_config.frame,
+                            frame,
+                            MergeStyle::ParentUnlessInfinite,
+                            MergeStyle::ParentUnlessInfinite
+                        );
                         // test print: println!("Updating parent frame to {:?}", merged_parent_frame);
                         view_config.frame = merged_parent_frame;
                         parent_config.frame = merged_parent_frame;
@@ -177,19 +202,29 @@ impl Compositor {
     fn modify_ast_frame(ast: &mut OpenComposeAST, new_frame: ViewFrame) {
         // println!("Before modifying frame to {:?}:", new_frame);
         // dbg!(&ast);
-        // println!("After:");
         match ast {
-            OpenComposeAST::View(view_config, _) => {
+            OpenComposeAST::View(view_config, node_ast) => {
+                view_config.frame = new_frame;
+                match node_ast {
+                    crate::ast::ViewNode::Image(view_config, _) => view_config.frame = new_frame,
+                    crate::ast::ViewNode::Text(view_config, _) => view_config.frame = new_frame,
+                }
+            },
+            OpenComposeAST::List(view_config, _node_ast) => {
                 view_config.frame = new_frame
             },
-            OpenComposeAST::List(view_config, _) => {
-                view_config.frame = new_frame
-            },
-            OpenComposeAST::Container(view_config, _) => {
-                view_config.frame = new_frame
+            OpenComposeAST::Container(view_config, node_ast) => {
+                view_config.frame = new_frame;
+                match node_ast.as_mut() {
+                    ContainerNode::Row(view_config, _open_compose_ast) => view_config.frame = new_frame,
+                    ContainerNode::Column(view_config, _open_compose_ast) => view_config.frame = new_frame,
+                    ContainerNode::Box(view_config, _open_compose_ast) => view_config.frame = new_frame,
+                    ContainerNode::Button(view_config, _open_compose_ast) => view_config.frame = new_frame,
+                }
             },
         }
-        // dbg!(ast);
+        // println!("After:");
+        // dbg!(&ast);
     }
 }
 

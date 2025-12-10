@@ -21,10 +21,14 @@ impl ViewConfig {
         }
     }
 
-    pub fn frame(&mut self, width: usize, height: usize) -> &mut Self {
+    pub fn frame<W, H>(&mut self, width: W, height: H) -> &mut Self
+    where
+        W: ViewSizeConvertible,
+        H: ViewSizeConvertible
+    {
         self.frame = ViewFrame {
-            width: ViewSize::Finite(width),
-            height: ViewSize::Finite(height)
+            width: width.as_view_size(),
+            height: height.as_view_size()
         };
         self
     }
@@ -64,4 +68,20 @@ pub struct ViewFrame {
 pub enum ViewSize {
     Infinite,
     Finite(usize)
+}
+
+pub trait ViewSizeConvertible {
+    fn as_view_size(&self) -> ViewSize;
+}
+
+impl ViewSizeConvertible for ViewSize {
+    fn as_view_size(&self) -> ViewSize {
+        return *self
+    }
+}
+
+impl ViewSizeConvertible for usize {
+    fn as_view_size(&self) -> ViewSize {
+        return ViewSize::Finite(*self)
+    }
 }
