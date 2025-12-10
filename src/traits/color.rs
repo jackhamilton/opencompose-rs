@@ -2,7 +2,7 @@ pub trait RGBAConvertible {
     fn get_rgba(&self) -> RGBAColor;
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub struct RGBAColor {
     pub r: f32,
     pub g: f32,

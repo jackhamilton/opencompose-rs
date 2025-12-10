@@ -1,4 +1,4 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct TextConfig {
     pub text: &'static str,
     pub font_size: usize

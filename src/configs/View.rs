@@ -1,6 +1,6 @@
 use crate::traits::color::{RGBAColor, RGBAConvertible};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct ViewConfig {
     pub frame: ViewFrame,
     pub background_color: Option<RGBAColor>,
@@ -48,19 +48,19 @@ impl ViewConfig {
         self.clone()
     }
 
-    pub fn inherit(&mut self, parent: &ViewConfig) {
+    pub fn inherit(&mut self, _parent: &ViewConfig) {
         // inheritance is meant for things like theme, frame shouldn't be
         return
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ViewFrame {
     pub width: ViewSize,
     pub height: ViewSize,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ViewSize {
     Infinite,
     Finite(usize)

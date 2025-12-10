@@ -2,7 +2,7 @@ use crate::configs::View::ViewConfig;
 use crate::configs::Text::TextConfig;
 use crate::configs::Image::ImageConfig;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum OpenComposeAST {
     View(ViewConfig, ViewNode),
     // No direct use
@@ -10,13 +10,13 @@ pub enum OpenComposeAST {
     Container(ViewConfig, Box<ContainerNode>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ViewNode {
     Image(ViewConfig, ImageConfig),
     Text(ViewConfig, TextConfig),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ContainerNode {
     Row(ViewConfig, crate::ast::OpenComposeAST),
     Column(ViewConfig, crate::ast::OpenComposeAST),
