@@ -1,10 +1,11 @@
+use crate::configs::view_subtypes::view_alignment::{Alignment, ViewAlignment};
 use crate::configs::view_subtypes::view_size::*;
-use crate::{configs::view_subtypes::view_alignment::ViewAnchors, traits::color::{RGBAColor, RGBAConvertible}};
+use crate::{traits::color::{RGBAColor, RGBAConvertible}};
 
 #[derive(Debug, Clone, Copy)]
 pub struct ViewConfig {
     pub frame: ViewFrame,
-    pub alignment: Option<ViewAnchors>,
+    pub alignment: Option<ViewAlignment>,
     pub background_color: Option<RGBAColor>,
     pub foreground_color: Option<RGBAColor>,
     pub corner_radius: Option<i32>,
@@ -33,6 +34,15 @@ impl ViewConfig {
             width: width.as_view_size(),
             height: height.as_view_size()
         };
+        self
+    }
+
+    pub fn alignment(&mut self, vertical: Alignment, horizontal: Alignment) -> &mut Self {
+        let alignment = ViewAlignment {
+            vertical,
+            horizontal
+        };
+        self.alignment = Some(alignment);
         self
     }
 
