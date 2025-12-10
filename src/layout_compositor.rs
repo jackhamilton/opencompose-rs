@@ -1,5 +1,6 @@
+use crate::configs::view_subtypes::view_size::*;
+use crate::ast::OpenComposeAST;
 use crate::ast::ContainerNode;
-use crate::{ast::OpenComposeAST, configs::View::{ViewFrame, ViewSize}};
 
 // Adds view frames
 pub struct Compositor {}
@@ -66,6 +67,10 @@ impl Compositor {
                         // test print: println!("Updating parent frame to {:?}", merged_parent_frame);
                         view_config.frame = merged_parent_frame;
                         parent_config.frame = merged_parent_frame;
+                        match open_compose_ast {
+                            OpenComposeAST::List(list_config, _child_asts) => list_config.frame = view_config.frame,
+                            _ => {}
+                        }
                         merged_parent_frame
                     },
                     ContainerNode::Column(view_config, open_compose_ast) => {
@@ -89,6 +94,10 @@ impl Compositor {
                         // test print: println!("Updating parent frame to {:?}", merged_parent_frame);
                         view_config.frame = merged_parent_frame;
                         parent_config.frame = merged_parent_frame;
+                        match open_compose_ast {
+                            OpenComposeAST::List(list_config, _child_asts) => list_config.frame = view_config.frame,
+                            _ => {}
+                        }
                         merged_parent_frame
                     },
                     ContainerNode::Box(view_config, _open_compose_ast) => {

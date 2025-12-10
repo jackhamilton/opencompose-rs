@@ -1,8 +1,10 @@
-use crate::traits::color::{RGBAColor, RGBAConvertible};
+use crate::configs::view_subtypes::view_size::*;
+use crate::{configs::view_subtypes::view_alignment::ViewAnchors, traits::color::{RGBAColor, RGBAConvertible}};
 
 #[derive(Debug, Clone, Copy)]
 pub struct ViewConfig {
     pub frame: ViewFrame,
+    pub alignment: Option<ViewAnchors>,
     pub background_color: Option<RGBAColor>,
     pub foreground_color: Option<RGBAColor>,
     pub corner_radius: Option<i32>,
@@ -15,6 +17,7 @@ impl ViewConfig {
                 width: ViewSize::Infinite,
                 height: ViewSize::Infinite
             },
+            alignment: None,
             background_color: None,
             foreground_color: None,
             corner_radius: None
@@ -49,39 +52,17 @@ impl ViewConfig {
     }
 
     pub fn done(&mut self) -> Self {
-        self.clone()
+        *self
     }
 
-    pub fn inherit(&mut self, _parent: &ViewConfig) {
+    pub fn inherit(&mut self, parent: &ViewConfig) {
         // inheritance is meant for things like theme, frame shouldn't be
+        if self.foreground_color.is_none() {
+            self.foreground_color = parent.foreground_color;
+        }
+        if self.background_color.is_none() {
+            self.background_color = parent.background_color;
+        }
         return
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct ViewFrame {
-    pub width: ViewSize,
-    pub height: ViewSize,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum ViewSize {
-    Infinite,
-    Finite(usize)
-}
-
-pub trait ViewSizeConvertible {
-    fn as_view_size(&self) -> ViewSize;
-}
-
-impl ViewSizeConvertible for ViewSize {
-    fn as_view_size(&self) -> ViewSize {
-        return *self
-    }
-}
-
-impl ViewSizeConvertible for usize {
-    fn as_view_size(&self) -> ViewSize {
-        return ViewSize::Finite(*self)
     }
 }

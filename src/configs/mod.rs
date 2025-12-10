@@ -2,3 +2,5 @@
 pub mod Image;
 pub mod Text;
 pub mod View;
+
+pub mod view_subtypes;
