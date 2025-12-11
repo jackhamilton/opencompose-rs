@@ -1,14 +1,16 @@
+use crate::configs::view_subtypes::view_padding::{Axis, EdgeInsets, Padding, Side, ViewPadding};
 use crate::configs::view_subtypes::view_alignment::{Alignment, ViewAlignment};
 use crate::configs::view_subtypes::view_size::*;
 use crate::{traits::color::{RGBAColor, RGBAConvertible}};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct ViewConfig {
     pub frame: ViewFrame,
     pub alignment: Option<ViewAlignment>,
     pub background_color: Option<RGBAColor>,
     pub foreground_color: Option<RGBAColor>,
     pub corner_radius: Option<i32>,
+    pub padding: ViewPadding
 }
 
 impl ViewConfig {
@@ -21,7 +23,8 @@ impl ViewConfig {
             alignment: None,
             background_color: None,
             foreground_color: None,
-            corner_radius: None
+            corner_radius: None,
+            padding: ViewPadding::new()
         }
     }
 
@@ -62,7 +65,62 @@ impl ViewConfig {
     }
 
     pub fn done(&mut self) -> Self {
-        *self
+        self.clone()
+    }
+
+    pub fn padding(&mut self, border: i32) -> &mut Self {
+        let mut border_padding = EdgeInsets {
+            left_offset: border,
+            right_offset: border,
+            top_offset: border,
+            bottom_offset: border
+        }.to_view_padding();
+        self.padding.padding.append(&mut border_padding.padding);
+        self
+    }
+
+    pub fn side_padding(&mut self, side: Side, offset: i32) -> &mut Self {
+        match side {
+            Side::LEFT => {
+                self.padding.padding.append(&mut vec![
+                    Padding { side: Side::LEFT, offset: offset },
+                ]);
+            },
+            Side::RIGHT => {
+                self.padding.padding.append(&mut vec![
+                    Padding { side: Side::RIGHT, offset: offset },
+                ]);
+            },
+            Side::TOP => {
+                self.padding.padding.append(&mut vec![
+                    Padding { side: Side::TOP, offset: offset },
+                ]);
+            },
+            Side::BOTTOM => {
+                self.padding.padding.append(&mut vec![
+                    Padding { side: Side::BOTTOM, offset: offset },
+                ]);
+            },
+        }
+        self
+    }
+
+    pub fn axis_padding(&mut self, axis: Axis, offset: i32) -> &mut Self {
+        match axis {
+            Axis::HORIZONTAL => {
+                self.padding.padding.append(&mut vec![
+                    Padding { side: Side::LEFT, offset: offset },
+                    Padding { side: Side::RIGHT, offset: offset }
+                ]);
+            },
+            Axis::VERTICAL => {
+                self.padding.padding.append(&mut vec![
+                    Padding { side: Side::TOP, offset: offset },
+                    Padding { side: Side::BOTTOM, offset: offset }
+                ]);
+            },
+        }
+        self
     }
 
     pub fn inherit(&mut self, parent: &ViewConfig) {
