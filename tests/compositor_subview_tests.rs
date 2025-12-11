@@ -13,34 +13,34 @@ fn test_forced_row_size_forces_child_size() {
             Text(text: "Text")
                 .frame(width: 100, height: ViewSize::Infinite)
         }
-        .frame(width: ViewSize::Infinite, height: 20)
+        .frame(width: ViewSize::Infinite, height: 10)
     };
     Compositor::layout_ast(&mut dsl_ast);
     dbg!(&dsl_ast);
     if let OpenComposeAST::Container(view_config, asts) = dsl_ast {
         assert_eq!(view_config.frame, ViewFrame {
-            height: ViewSize::Finite(20),
+            height: ViewSize::Finite(10),
             width: ViewSize::Finite(200)
         });
         if let ContainerNode::Row(row_config, row_ast) = *asts {
             assert_eq!(row_config.frame, ViewFrame {
-                height: ViewSize::Finite(20),
+                height: ViewSize::Finite(10),
                 width: ViewSize::Finite(200)
             });
             if let OpenComposeAST::List(list_config, list_ast) = row_ast {
                 assert_eq!(list_config.frame, ViewFrame {
-                    height: ViewSize::Finite(20),
+                    height: ViewSize::Finite(10),
                     width: ViewSize::Finite(200)
                 });
                 for child in list_ast {
                     if let OpenComposeAST::View(subview_config, view_node) = child {
                         assert_eq!(subview_config.frame, ViewFrame {
-                            height: ViewSize::Finite(20),
+                            height: ViewSize::Finite(10),
                             width: ViewSize::Finite(100)
                         });
                         if let ViewNode::Text(text_config, _text_node) = view_node {
                             assert_eq!(text_config.frame, ViewFrame {
-                                height: ViewSize::Finite(20),
+                                height: ViewSize::Finite(10),
                                 width: ViewSize::Finite(100)
                             });
                         }

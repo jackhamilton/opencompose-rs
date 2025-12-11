@@ -16,7 +16,19 @@ impl Compositor {
             OpenComposeAST::View(view_config, view) => {
                 let view_frame = match view {
                     crate::ast::ViewNode::Image(view_config, _image_config) => view_config.frame,
-                    crate::ast::ViewNode::Text(view_config, _text_config) => view_config.frame,
+                    crate::ast::ViewNode::Text(view_config, text_config) => {
+                        // todo: less shitty size estimation
+                        let text = text_config.text;
+                        let font_size = text_config.font_size;
+                        let width = text.chars().count() * 8;
+                        let height = font_size;
+                        let estimated_frame = ViewFrame {
+                            width: ViewSize::Finite(width),
+                            height: ViewSize::Finite(height)
+                        };
+                        let reconciled_frame = Compositor::reconcile_frames(view_config.frame, estimated_frame, MergeStyle::LargestFinite, MergeStyle::LargestFinite);
+                        reconciled_frame
+                    },
                 };
                 // test print: println!("Reconciling view with frame {:?} with subview with frame {:?}", view_config.frame, view_frame);
                 let reconciled_frame = Compositor::reconcile_frames(view_config.frame, view_frame, MergeStyle::Smallest, MergeStyle::Smallest);
@@ -101,12 +113,25 @@ impl Compositor {
                         merged_parent_frame
                     },
                     ContainerNode::Box(view_config, _open_compose_ast) => {
+                        view_config.frame = parent_config.frame;
                         // Boxes shouldn't expand
                         view_config.frame
                     },
-                    ContainerNode::Button(view_config, _open_compose_ast) => {
-                        // Buttons shouldn't expand
-                        view_config.frame
+                    ContainerNode::Button(view_config, button_config, open_compose_ast) => {
+                        view_config.frame = parent_config.frame;
+                        let frame = Compositor::layout_ast_recurse(open_compose_ast, MergeStyle::LargestFinite, MergeStyle::Additive);
+                        // Column should expand ignoring height if children exceed frame, so it can be
+                        // stuck in a scrollview
+                        // test print: println!("Merging parent {:?} with child {:?}", parent_config.frame, frame);
+                        let merged_parent_frame = Compositor::reconcile_frames(
+                            parent_config.frame,
+                            frame,
+                            MergeStyle::ParentUnlessInfinite,
+                            MergeStyle::ParentUnlessInfinite
+                        );
+                        view_config.frame = merged_parent_frame;
+                        parent_config.frame = merged_parent_frame;
+                        merged_parent_frame
                     }
                 }
             },
@@ -228,7 +253,7 @@ impl Compositor {
                     ContainerNode::Row(view_config, _open_compose_ast) => view_config.frame = new_frame,
                     ContainerNode::Column(view_config, _open_compose_ast) => view_config.frame = new_frame,
                     ContainerNode::Box(view_config, _open_compose_ast) => view_config.frame = new_frame,
-                    ContainerNode::Button(view_config, _open_compose_ast) => view_config.frame = new_frame,
+                    ContainerNode::Button(view_config, button_config, _open_compose_ast) => view_config.frame = new_frame,
                 }
             },
         }
