@@ -10,7 +10,7 @@ fn basic_macro_compiles() {
             Text(text: "Text")
                 .font_size(12)
                 .frame(width: 100, height: 100)
-            Button(action: {}) {
+            Button(action: || {}) {
                 Text("Label")
                     .alignment(horizontal: Alignment::Center, vertical: Alignment::Center)
             }

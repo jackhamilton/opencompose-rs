@@ -79,7 +79,9 @@ pub fn view_builder_impl(input: TokenStream) -> TokenStream {
                         Box::new(
                             opencompose_rs::ast::ContainerNode::#ident(
                                 ViewConfig::new(),
-                                ButtonConfig::new()
+                                ButtonConfig::new(
+                                    #(#arguments,)*
+                                )
                                 #(#modifier_fields)*
                                 .done(),
                                 opencompose_rs::ast::OpenComposeAST::List(
