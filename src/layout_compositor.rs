@@ -253,7 +253,7 @@ impl Compositor {
                     ContainerNode::Row(view_config, _open_compose_ast) => view_config.frame = new_frame,
                     ContainerNode::Column(view_config, _open_compose_ast) => view_config.frame = new_frame,
                     ContainerNode::Box(view_config, _open_compose_ast) => view_config.frame = new_frame,
-                    ContainerNode::Button(view_config, button_config, _open_compose_ast) => view_config.frame = new_frame,
+                    ContainerNode::Button(view_config, _button_config, _open_compose_ast) => view_config.frame = new_frame,
                 }
             },
         }
